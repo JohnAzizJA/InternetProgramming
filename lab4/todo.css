@@ -1,0 +1,112 @@
+*, *::before, *::after { 
+    box-sizing: border-box; 
+    margin: 0; 
+    padding: 0; 
+}
+
+
+body {
+  font-family: Georgia, serif;
+  background: #f5f0e8;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 20px;
+}
+
+header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+header h1 {
+  font-family: 'Calibri';
+  font-size: 2.8rem;
+  font-weight: 800;
+  color: black;
+  letter-spacing: -1px;
+}
+
+header h1 span {
+  color: navy;
+}
+
+header p {
+  color: #888;
+  margin-top: 6px;
+  font-size: 0.95rem;
+  font-family: 'Calibri';
+}
+
+.app {
+  width: 100%;
+  max-width: 520px;
+}
+
+.input-area {
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  padding: 20px;
+  display: flex;
+  gap: 10px;
+  margin-bottom: 24px;
+  border: 1px solid #e0d8cc;
+}
+
+.input-area input {
+  flex: 1;
+  border: 1px solid #e0d8cc;
+  border-radius: 10px;
+  padding: 12px 16px;
+  font-family: 'Calibri';
+  font-size: 0.95rem;
+  color: #1a1a1a;
+  background: #f5f0e8;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.input-area input:focus {
+  border-color: navy;
+}
+
+.input-area button {
+  background: navy;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 12px 20px;
+  font-family: 'Calibri';
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.1s;
+  white-space: nowrap;
+}
+
+.input-area button:hover { 
+    opacity: 0.88; 
+}
+.input-area button:active { 
+    transform: scale(0.97); 
+}
+
+.stats {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 4px;
+  margin-bottom: 14px;
+}
+
+.stats span {
+  font-size: 0.85rem;
+  color: #888;
+  font-family: 'Calibri';
+}
+
+.stats strong { 
+    color: #1a1a1a; 
+}
