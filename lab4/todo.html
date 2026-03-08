@@ -29,4 +29,74 @@
   </div>
 
   <script>
+    class Task {
+      constructor(description) {
+        this.description = description;
+        this.completed = false;
+        this.timestamp = new Date();
+      }
+
+      toggle() {
+        this.completed = !this.completed;
+      }
+    }
+
+    const tasks = [];
+
+    const input     = document.getElementById('task-input');
+    const addBtn    = document.getElementById('add-btn');
+    const taskList  = document.getElementById('task-list');
+    const totalSpan = document.getElementById('total-count');
+    const doneSpan  = document.getElementById('done-count');
+
+    function render() {
+      totalSpan.textContent = tasks.length;
+      doneSpan.textContent  = tasks.filter(t => t.completed).length;
+
+      if (tasks.length === 0) {
+        taskList.innerHTML = `
+          <li class="empty-state">
+            <div class="icon">&#128203;</div>
+            <p>No tasks yet. Add one above!</p>
+          </li>`;
+        return;
+      }
+
+      taskList.innerHTML = tasks
+        .map((task, index) => `
+          <li class="task-item ${task.completed ? 'completed' : ''}" data-index="${index}">
+            <button class="check-btn" onclick="toggleTask(${index})">&#10003;</button>
+            <span class="task-text" onclick="toggleTask(${index})">${task.description}</span>
+            <span class="task-timestamp">${task.timestamp.toLocaleString()}</span>
+            <button class="delete-btn" onclick="deleteTask(${index})">&#10005;</button>
+          </li>`)
+        .join('');
+    }
+
+    function addTask() {
+      const text = input.value.trim();
+      if (!text) return;
+
+      tasks.push(new Task(text));
+      input.value = '';
+      render();
+    }
+
+    function toggleTask(index) {
+      tasks[index].toggle();
+      render();
+    }
+
+    function deleteTask(index) {
+      tasks.splice(index, 1);
+      render();
+    }
+
+    addBtn.addEventListener('click', addTask);
+
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') addTask();
+    });
+
+    render();
   </script>
