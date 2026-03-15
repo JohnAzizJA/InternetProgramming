@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Interactive Calculator</title>
+  <link rel="stylesheet" href="calc.css" />
+</head>
+<body>
+  <div class="calculator">
+    <div class="brand">Calculator</div>
+    <div class="display">
+      <div class="expression" id="expression"></div>
+      <div class="result" id="result">0</div>
+    </div>
+    <div class="buttons" id="buttons">
+      <button class="btn span2 btn-util" data-action="clear">AC</button>
+      <button class="btn btn-util" data-action="sign">+/−</button>
+      <button class="btn btn-util" data-action="percent">%</button>
+      <button class="btn btn-op" data-value="÷">÷</button>
+
+      <button class="btn btn-num" data-value="7">7</button>
+      <button class="btn btn-num" data-value="8">8</button>
+      <button class="btn btn-num" data-value="9">9</button>
+      <button class="btn btn-op" data-value="×">×</button>
+
+      <button class="btn btn-num" data-value="4">4</button>
+      <button class="btn btn-num" data-value="5">5</button>
+      <button class="btn btn-num" data-value="6">6</button>
+      <button class="btn btn-op" data-value="−">−</button>
+
+      <button class="btn btn-num" data-value="1">1</button>
+      <button class="btn btn-num" data-value="2">2</button>
+      <button class="btn btn-num" data-value="3">3</button>
+      <button class="btn btn-op" data-value="+">+</button>
+
+      <button class="btn span2 btn-num" data-value="0">0</button>
+      <button class="btn btn-num" data-value=".">.</button>
+      <button class="btn btn-eq" data-action="equals">=</button>
+    </div>
+  </div>
+  <script>
+    // ── State ──────────────────────────────────────────────────────────
+    let currentInput  = '';
+    let previousInput = '';
+    let operator      = null;
+    let justEvaluated = false;
+    
+    // ── DOM References ──────────────────────────────────────────────────
+    const resultEl    = document.getElementById('result');
+    const expressionEl = document.getElementById('expression');
+    const buttonsEl   = document.getElementById('buttons');
+    
+    // ── Helpers ─────────────────────────────────────────────────────────
+    
+    /** Update display; shrink font for long numbers */
+    function updateDisplay(value, expr = '') {
+    const str = String(value);
+    resultEl.textContent = str;
+    resultEl.classList.remove('small', 'xsmall');
+    if (str.length > 12) resultEl.classList.add('xsmall');
+    else if (str.length > 9) resultEl.classList.add('small');
+    expressionEl.textContent = expr;
+    }
+    
+    /** Highlight / un-highlight the active operator button */
+    function highlightOperator(op) {
+    document.querySelectorAll('.btn-op').forEach(b => b.classList.remove('active'));
+    if (op) {
+        document.querySelectorAll('.btn-op').forEach(b => {
+        if (b.dataset.value === op) b.classList.add('active');
+        });
+    }
+    }
+    
+    /** Core arithmetic (pure function — no side effects) */
+    function calculate(a, b, op) {
+    const x = parseFloat(a), y = parseFloat(b);
+    switch (op) {
+        case '+': return x + y;
+        case '−': return x - y;
+        case '×': return x * y;
+        case '÷': return y === 0 ? 'Error' : x / y;
+        default:  return b;
+    }
+    }
+    
+    /** Format result: remove floating-point noise, cap decimal places */
+    function formatResult(num) {
+    if (num === 'Error') return 'Error';
+    const n = parseFloat(num.toPrecision(12));
+    return String(n);
+    }
+    
+    // ── Action Handlers ─────────────────────────────────────────────────
+    
+    function handleDigit(digit) {
+    if (justEvaluated) {
+        // Starting fresh after "="
+        currentInput  = digit === '.' ? '0.' : digit;
+        justEvaluated = false;
+    } else {
+        // Prevent multiple decimal points
+        if (digit === '.' && currentInput.includes('.')) return;
+        // Limit input length
+        if (currentInput.length >= 15) return;
+        currentInput = currentInput === '0' && digit !== '.'
+        ? digit
+        : currentInput + digit;
+    }
+    updateDisplay(currentInput, expressionEl.textContent);
+    highlightOperator(null);
+    }
+    
+    function handleOperator(op) {
+    highlightOperator(op);
+    
+    if (currentInput === '' && previousInput !== '') {
+        // Just change the pending operator
+        operator = op;
+        expressionEl.textContent = `${previousInput} ${op}`;
+        return;
+    }
+    
+    if (previousInput !== '' && currentInput !== '' && operator) {
+        // Chain: evaluate first, then set new operator
+        const res = formatResult(calculate(previousInput, currentInput, operator));
+        previousInput = res;
+        currentInput  = '';
+        updateDisplay(res, `${res} ${op}`);
+    } else {
+        previousInput = currentInput || previousInput || '0';
+        currentInput  = '';
+        updateDisplay(previousInput, `${previousInput} ${op}`);
+    }
+    
+    operator      = op;
+    justEvaluated = false;
+    }
+    
+    function handleEquals() {
+    if (operator === null || currentInput === '') return;
+    highlightOperator(null);
+    
+    const expr = `${previousInput} ${operator} ${currentInput} =`;
+    const raw  = calculate(previousInput, currentInput, operator);
+    const res  = raw === 'Error' ? 'Error' : formatResult(raw);
+    
+    updateDisplay(res, expr);
+    previousInput = res;
+    currentInput  = '';
+    operator      = null;
+    justEvaluated = true;
+    }
+    
+    function handleClear() {
+    currentInput  = '';
+    previousInput = '';
+    operator      = null;
+    justEvaluated = false;
+    highlightOperator(null);
+    updateDisplay('0', '');
+    }
+    
+    function handleSign() {
+    if (currentInput === '' || currentInput === '0') return;
+    currentInput = String(parseFloat(currentInput) * -1);
+    updateDisplay(currentInput, expressionEl.textContent);
+    }
+    
+    function handlePercent() {
+    if (currentInput === '') return;
+    currentInput = String(parseFloat(currentInput) / 100);
+    updateDisplay(currentInput, expressionEl.textContent);
+    }
+    
+    // ── Event Delegation ─────────────────────────────────────────────────
+    buttonsEl.addEventListener('click', (e) => {
+    const btn = e.target.closest('.btn');
+    if (!btn) return;
+    
+    const { action, value } = btn.dataset;
+    
+    if (action === 'clear')   { handleClear();   return; }
+    if (action === 'sign')    { handleSign();    return; }
+    if (action === 'percent') { handlePercent(); return; }
+    if (action === 'equals')  { handleEquals();  return; }
+    
+    // Operator buttons have data-value of ÷ × − +
+    if (btn.classList.contains('btn-op')) { handleOperator(value); return; }
+    
+    // Digit / decimal buttons
+    if (value !== undefined) handleDigit(value);
+    });
+    
+    // ── Keyboard Support ─────────────────────────────────────────────────
+    document.addEventListener('keydown', (e) => {
+    const key = e.key;
+    if (key >= '0' && key <= '9') { handleDigit(key); return; }
+    if (key === '.')               { handleDigit('.'); return; }
+    if (key === '+')               { handleOperator('+'); return; }
+    if (key === '-')               { handleOperator('−'); return; }
+    if (key === '*')               { handleOperator('×'); return; }
+    if (key === '/')               { e.preventDefault(); handleOperator('÷'); return; }
+    if (key === 'Enter' || key === '=') { handleEquals(); return; }
+    if (key === 'Escape')          { handleClear(); return; }
+    if (key === 'Backspace') {
+        if (justEvaluated) { handleClear(); return; }
+        currentInput = currentInput.slice(0, -1) || '0';
+        updateDisplay(currentInput, expressionEl.textContent);
+    }
+    });
+    
+    // ── Init ─────────────────────────────────────────────────────────────
+    updateDisplay('0', '');
+  </script>
+</body>
+</html>
